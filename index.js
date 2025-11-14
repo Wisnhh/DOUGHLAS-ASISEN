@@ -663,7 +663,7 @@ async function archiveTicketHistory(
       console.error("Error deleting channel:", error);
     }
   }, 10000);
-}
+});
 
 /* ---------- Main / Events ---------- */
 
