@@ -526,81 +526,74 @@ async function archiveTicketHistory(
 
     // ⭐ GANTI BAGIAN INI DENGAN EMBED ROYAL ⭐
     const archiveEmbed = new EmbedBuilder()
-      .setColor("#000000")
-      .setAuthor({
-        name: "DOUGHLAS TICKET HISTORY",
-        iconURL: channel.client.user.displayAvatarURL(),
-      })
-      .setTitle(`Archive — Ticket ${ticketData.subject}`)
-      .setDescription(
-        "═══════════════════════════\n" +
-        "🟛 **DOUGHLAS TICKET ARCHIVE**\n" +
-        "═══════════════════════════"
-      )
-      .addFields(
-        {
-          name: "👤 Client",
-          value: `<@${ticketData.userId}>`,
-          inline: true,
-        },
-        {
-          name: "🛡️ Admin",
-          value: `<@${ticketData.claimedBy || closedBy}>`,
-          inline: true,
-        },
-        {
-          name: "🌐 World",
-          value: ticketData.subject || "-",
-          inline: true,
-        },
-        {
-          name: "Service",
-          value: ticketData.description || "-",
-          inline: true,
-        },
-        {
-          name: "Amount",
-          value: ticketData.category || "0",
-          inline: true,
-        },
-        {
-          name: "Status",
-          value: "DONE",
-          inline: true,
-        },
-        {
-          name: "Closed At",
-          value: new Date().toLocaleString(),
-          inline: true,
-        },
-        {
-          name: "Notes",
-          value: closeReason || "No note provided",
-          inline: false,
-        },
-        {
-          name: "Chat Log",
-          value:
-            "```" +
-            (chatHistory.length > 1000
-              ? chatHistory.slice(0, 1000) + "\n... (truncated)"
-              : chatHistory) +
-            "```",
-          inline: false,
-        },
-      )
-      .setFooter({
-        text: "DOUGHLAS TICKET HISTORY • Est. 2025",
-      })
-      .setTimestamp();
-
-    await archiveChannel.send({ embeds: [archiveEmbed] });
-
-  } catch (error) {
-    console.error("Error archiving ticket history:", error);
-  }
-}
- .setTimestamp();
+  .setColor("#000000")
+  .setAuthor({
+    name: "Ticket Archive System",
+    iconURL: channel.client.user.displayAvatarURL(),
+  })
+  .setTitle(`Ticket Archive — ${ticketData.subject}`)
+  .setDescription(
+    "**Ticket Summary**\n" +
+    "────────────────────────────────────"
+  )
+  .addFields(
+    {
+      name: "Client",
+      value: `<@${ticketData.userId}>`,
+      inline: true,
+    },
+    {
+      name: "Admin",
+      value: `<@${ticketData.claimedBy || closedBy}>`,
+      inline: true,
+    },
+    {
+      name: "World",
+      value: ticketData.subject || "-",
+      inline: true,
+    },
+    {
+      name: "Service",
+      value: ticketData.description || "-",
+      inline: true,
+    },
+    {
+      name: "Amount",
+      value: ticketData.category || "0",
+      inline: true,
+    },
+    {
+      name: "Status",
+      value: "Closed",
+      inline: true,
+    },
+    {
+      name: "Closed At",
+      value: new Date().toLocaleString(),
+      inline: true,
+    },
+    {
+      name: "Notes",
+      value: closeReason || "No notes provided",
+      inline: false,
+    },
+    {
+      name: "Chat Log",
+      value:
+        "```" +
+        (chatHistory.length > 1000
+          ? chatHistory.slice(0, 1000) + "\n... (truncated)"
+          : chatHistory) +
+        "```",
+      inline: false,
+    }
+  )
+  .setFooter({
+    text: "Ticket Archive System",
+    iconURL: channel.client.user.displayAvatarURL(),
+  })
+  .setTimestamp();
+    
 
     await archiveChannel.send({ embeds: [archiveEmbed] });
 
