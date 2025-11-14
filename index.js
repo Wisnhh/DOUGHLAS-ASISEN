@@ -684,5 +684,212 @@ async function main() {
     console.log("  !setup - Send the ticket panel to this channel");
     console.log("  !setcategory <category_id> - Set the ticket category");
     console.log("  !setlog <channel_id> - Set the log channel");
-    console.log(
-      "  !setarchive <channel_id> - Set the archive channel for 
+    console.log("  !setarchive <channel_id> - Set the archive channel for closed ticket");
+    console.log("  !addrole <@role> - Add a staff role for tickets");
+    console.log("  !removerole <@role> - Remove a staff role");
+    console.log("  !listroles - List all configured staff roles");
+    console.log("  !setprizejasa <channel_id> - Set PRIZE JASA info channel");
+    console.log("  !setpricelock <channel_id> - Set PRICE LOCK info channel");
+  });
+
+  client.on("messageCreate", async (message) => {
+    if (message.author.bot) return;
+
+    // require admin permission for setup/config commands
+    if (message.content === "!setup") {
+      if (!message.member.permissions.has(PermissionFlagsBits.Administrator))
+        return message.reply(
+          "❌ You need Administrator permission to use this command.",
+        );
+      await createButtonPanel(message.channel);
+      return message.reply("✅ Ticket panel has been created!");
+    }
+
+    if (message.content.startsWith("!setcategory ")) {
+      if (!message.member.permissions.has(PermissionFlagsBits.Administrator))
+        return message.reply(
+          "❌ You need Administrator permission to use this command.",
+        );
+      const categoryId = message.content.split(" ")[1];
+      const config = loadConfig();
+      config.ticketCategoryId = categoryId;
+      saveConfig(config);
+      return message.reply(`✅ Ticket category set to <#${categoryId}>`);
+    }
+
+    if (message.content.startsWith("!setlog ")) {
+      if (!message.member.permissions.has(PermissionFlagsBits.Administrator))
+        return message.reply(
+          "❌ You need Administrator permission to use this command.",
+        );
+      const channelId = message.content.split(" ")[1];
+      const config = loadConfig();
+      config.logChannelId = channelId;
+      saveConfig(config);
+      return message.reply(`✅ Log channel set to <#${channelId}>`);
+    }
+
+    if (message.content.startsWith("!addrole ")) {
+      if (!message.member.permissions.has(PermissionFlagsBits.Administrator))
+        return message.reply(
+          "❌ You need Administrator permission to use this command.",
+        );
+      const roleId = message.content.split(" ")[1].replace(/[<@&>]/g, "");
+      const config = loadConfig();
+      if (!config.staffRoles) config.staffRoles = [];
+      if (config.staffRoles.includes(roleId))
+        return message.reply(
+          "❌ This role is already configured as a staff role.",
+        );
+      config.staffRoles.push(roleId);
+      saveConfig(config);
+      return message.reply(
+        `✅ Staff role <@&${roleId}> added to ticket system.`,
+      );
+    }
+
+    if (message.content.startsWith("!removerole ")) {
+      if (!message.member.permissions.has(PermissionFlagsBits.Administrator))
+        return message.reply(
+          "❌ You need Administrator permission to use this command.",
+        );
+      const roleId = message.content.split(" ")[1].replace(/[<@&>]/g, "");
+      const config = loadConfig();
+      if (!config.staffRoles) config.staffRoles = [];
+      const index = config.staffRoles.indexOf(roleId);
+      if (index === -1)
+        return message.reply("❌ This role is not configured as a staff role.");
+      config.staffRoles.splice(index, 1);
+      saveConfig(config);
+      return message.reply(
+        `✅ Staff role <@&${roleId}> removed from ticket system.`,
+      );
+    }
+
+    if (message.content === "!listroles") {
+      if (!message.member.permissions.has(PermissionFlagsBits.Administrator))
+        return message.reply(
+          "❌ You need Administrator permission to use this command.",
+        );
+      const config = loadConfig();
+      if (!config.staffRoles || config.staffRoles.length === 0)
+        return message.reply(
+          "❌ No staff roles configured. Use `!addrole <role_id>` to add one.",
+        );
+      const rolesList = config.staffRoles.map((id) => `<@&${id}>`).join(", ");
+      return message.reply(`📋 **Configured Staff Roles:**\n${rolesList}`);
+    }
+
+    if (message.content.startsWith("!setprizejasa ")) {
+      if (!message.member.permissions.has(PermissionFlagsBits.Administrator))
+        return message.reply(
+          "❌ You need Administrator permission to use this command.",
+        );
+      const channelId = message.content.split(" ")[1].replface(/[<#>]/g, "");
+      const config = loadConfig();
+      config.prizeJasaChannelId = channelId;
+      saveConfig(config);
+      return message.reply(`✅ PRIZE JASA channel set to <#${channelId}>`);
+    }
+
+    if (message.content.startsWith("!setpricelock ")) {
+      if (!message.member.permissions.has(PermissionFlagsBits.Administrator))
+        return message.reply(
+          "❌ You need Administrator permission to use this command.",
+        );
+      const channelId = message.content.split(" ")[1].replace(/[<#>]/g, "");
+      const config = loadConfig();
+      config.priceLockChannelId = channelId;
+      saveConfig(config);
+      return message.reply(`✅ PRICE LOCK channel set to <#${channelId}>`);
+    }
+
+    if (message.content.startsWith("!setarchive ")) {
+      if (!message.member.permissions.has(PermissionFlagsBits.Administrator))
+        return message.reply(
+          "❌ You need Administrator permission to use this command.",
+        );
+      const channelId = message.content.split(" ")[1].replace(/[<#>]/g, "");
+      const config = loadConfig();
+      config.archiveChannelId = channelId;
+      saveConfig(config);
+      return message.reply(`✅ Archive channel set to <#${channelId}>`);
+    }
+  });
+
+  client.on("interactionCreate", async (interaction) => {
+    try {
+      if (interaction.isButton()) {
+        if (interaction.customId === "create_ticket") {
+          return await handleCreateTicket(interaction);
+        } else if (
+          interaction.customId === "prize_jasa" ||
+          interaction.customId === "price_jasa"
+        ) {
+          const config = loadConfig();
+          if (config.prizeJasaChannelId) {
+            return interaction.reply({
+              content: `🏆 **PRICE JASA**\n\nFor service price information, please check: <#${config.prizeJasaChannelId}>`,
+              ephemeral: true,
+            });
+          } else {
+            return interaction.reply({
+              content:
+                "🏆 **PRICE JASA**\n\nService price channel not configured yet.\nAsk an administrator to set it up with `!setprizejasa <channel_id>`",
+              ephemeral: true,
+            });
+          }
+        } else if (interaction.customId === "price_lock") {
+          const config = loadConfig();
+          if (config.priceLockChannelId) {
+            return interaction.reply({
+              content: `🔒 **PRICE LOCK**\n\nFor price lock information, please check: <#${config.priceLockChannelId}>`,
+              ephemeral: true,
+            });
+          } else {
+            return interaction.reply({
+              content:
+                "🔒 **PRICE LOCK**\n\nPrice lock channel not configured yet.\nAsk an administrator to set it up with `!setpricelock <channel_id>`",
+              ephemeral: true,
+            });
+          }
+        } else if (interaction.customId === "close_ticket") {
+          return await handleCloseTicket(interaction);
+        } else if (interaction.customId === "claim_ticket") {
+          return await handleClaimTicket(interaction);
+        }
+      } else if (interaction.isStringSelectMenu()) {
+        if (interaction.customId === "ticket_role_select")
+          return await handleRoleSelect(interaction);
+      } else if (interaction.isModalSubmit()) {
+        if (interaction.customId === "ticket_modal")
+          return await handleTicketModalSubmit(interaction);
+        if (interaction.customId === "close_modal")
+          return await handleCloseModalSubmit(interaction);
+      }
+    } catch (error) {
+      console.error("Error handling interaction:", error);
+      try {
+        if (!interaction.replied && !interaction.deferred) {
+          await interaction.reply({
+            content: "❌ An error occurred. Please try again.",
+            ephemeral: true,
+          });
+        }
+      } catch (err) {
+        console.error("Failed to send error reply to interaction:", err);
+      }
+    }
+  });
+
+  client.on("error", (error) => {
+    console.error("Discord client error:", error);
+  });
+
+  process.on("unhandledRejection", (error) => {
+    console.error("Unhandled promise rejection:", error);
+  });
+}
+
+main().catch(console.error);
+      
