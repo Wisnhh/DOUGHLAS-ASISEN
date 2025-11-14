@@ -604,7 +604,6 @@ async function archiveTicketHistory(
     console.error("Error archiving ticket history:", error);
   }
 }
-.setTimestamp();
 
   await interaction.editReply({ embeds: [closeEmbed] });
 
