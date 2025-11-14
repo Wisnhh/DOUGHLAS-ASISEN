@@ -486,7 +486,6 @@ async function handleCloseTicket(interaction) {
 }
 
 /* ---------- Archive / Close Modal Submit ---------- */
-
 async function archiveTicketHistory(
   channel,
   ticketData,
@@ -498,7 +497,6 @@ async function archiveTicketHistory(
     const messages = [];
     let lastMessageId;
 
-    // Ambil semua pesan dalam tiket
     while (true) {
       const options = { limit: 100 };
       if (lastMessageId) options.before = lastMessageId;
@@ -511,10 +509,8 @@ async function archiveTicketHistory(
 
     messages.reverse();
 
-    // Buat Chat History
     let chatHistory = "";
     for (const msg of messages) {
-      // Lewatkan pesan sistem bot
       if (msg.author.bot && !msg.webhookId) continue;
 
       const timestamp = msg.createdAt.toLocaleString();
@@ -528,88 +524,91 @@ async function archiveTicketHistory(
 
     if (chatHistory.length === 0) chatHistory = "_No chat history available._";
 
-    // Buat embed utama (1 panel saja)
+    // ⭐ GANTI BAGIAN INI DENGAN EMBED ROYAL ⭐
     const archiveEmbed = new EmbedBuilder()
-      .setColor("#ff3333")
-      .setTitle(`📜 Ticket-${ticketData.subject} - Archive`)
+      .setColor("#000000")
+      .setAuthor({
+        name: "DOUGHLAS TICKET HISTORY",
+        iconURL: channel.client.user.displayAvatarURL(),
+      })
+      .setTitle(`Archive — Ticket ${ticketData.subject}`)
+      .setDescription(
+        "═══════════════════════════\n" +
+        "🟛 **DOUGHLAS TICKET ARCHIVE**\n" +
+        "═══════════════════════════"
+      )
       .addFields(
-        { name: "Client", value: `<@${ticketData.userId}>`, inline: true },
         {
-          name: "Admin",
+          name: "👤 Client",
+          value: `<@${ticketData.userId}>`,
+          inline: true,
+        },
+        {
+          name: "🛡️ Admin",
           value: `<@${ticketData.claimedBy || closedBy}>`,
           inline: true,
         },
         {
-          name: "World",
+          name: "🌐 World",
           value: ticketData.subject || "-",
           inline: true,
         },
-
-        { name: "Service", value: ticketData.description || "-", inline: true },
-        { name: "Amount", value: ticketData.category || "0", inline: true },
-        { name: "Status", value: "Closed", inline: true },
-        { name: "Closed at", value: new Date().toLocaleString(), inline: true },
         {
-          name: "Note",
+          name: "Service",
+          value: ticketData.description || "-",
+          inline: true,
+        },
+        {
+          name: "Amount",
+          value: ticketData.category || "0",
+          inline: true,
+        },
+        {
+          name: "Status",
+          value: "DONE",
+          inline: true,
+        },
+        {
+          name: "Closed At",
+          value: new Date().toLocaleString(),
+          inline: true,
+        },
+        {
+          name: "Notes",
           value: closeReason || "No note provided",
           inline: false,
         },
         {
-          name: "Chat History",
+          name: "Chat Log",
           value:
             "```" +
             (chatHistory.length > 1000
               ? chatHistory.slice(0, 1000) + "\n... (truncated)"
               : chatHistory) +
             "```",
+          inline: false,
         },
       )
+      .setFooter({
+        text: "DOUGHLAS TICKET HISTORY • Est. 2025",
+      })
       .setTimestamp();
 
     await archiveChannel.send({ embeds: [archiveEmbed] });
+
   } catch (error) {
     console.error("Error archiving ticket history:", error);
   }
 }
+ .setTimestamp();
 
-async function handleCloseModalSubmit(interaction) {
-  // check permission again — modal submit could be invoked by someone else
-  const allowed = await isInteractionMemberStaff(interaction);
-  if (!allowed) {
-    return interaction.reply({
-      content: "❌ You do not have permission to close.",
-      ephemeral: true,
-    });
+    await archiveChannel.send({ embeds: [archiveEmbed] });
+
+  } catch (error) {
+    console.error("Error archiving ticket history:", error);
   }
-
-  await interaction.deferReply();
-
-  const reason =
-    interaction.fields.getTextInputValue("close_reason") ||
-    "No reason provided";
-  const ticketData = tickets[interaction.channel.id];
-
-  if (!ticketData) {
-    return await interaction.editReply({
-      content: "❌ This is not a valid ticket channel.",
-    });
-  }
-
-  ticketData.status = "closed";
-  ticketData.closedBy = interaction.user.id;
-  ticketData.closedAt = new Date().toISOString();
-  ticketData.closeReason = reason;
-  saveTickets(tickets);
-
-  const closeEmbed = new EmbedBuilder()
-    .setColor("#FF0000")
-    .setTitle("🔒 Ticket Closed")
-    .setDescription(`This ticket has been closed by <@${interaction.user.id}>`)
-    .addFields(
-      { name: "Resolution Notes", value: reason },
-      { name: "Closed at", value: new Date().toLocaleString() },
-    )
-    .setTimestamp();
+}
+.setTimestamp();
 
   await interaction.editReply({ embeds: [closeEmbed] });
 
