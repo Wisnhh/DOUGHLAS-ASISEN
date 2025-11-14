@@ -497,6 +497,7 @@ async function archiveTicketHistory(
     const messages = [];
     let lastMessageId;
 
+    // Ambil semua pesan dalam tiket
     while (true) {
       const options = { limit: 100 };
       if (lastMessageId) options.before = lastMessageId;
@@ -509,8 +510,10 @@ async function archiveTicketHistory(
 
     messages.reverse();
 
+    // Buat Chat History
     let chatHistory = "";
     for (const msg of messages) {
+      // Lewatkan pesan sistem bot
       if (msg.author.bot && !msg.webhookId) continue;
 
       const timestamp = msg.createdAt.toLocaleString();
@@ -524,7 +527,7 @@ async function archiveTicketHistory(
 
     if (chatHistory.length === 0) chatHistory = "_No chat history available._";
 
-    // ⭐ GANTI BAGIAN INI DENGAN EMBED ROYAL ⭐
+// ⭐ GANTI BAGIAN INI DENGAN EMBED ROYAL ⭐
     const archiveEmbed = new EmbedBuilder()
   .setColor("#000000")
   .setAuthor({
